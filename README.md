@@ -1,2 +1,2 @@
 # PuckCaller
-Matlab tools for processing image data
+A Matlab package for image processing and base calling
