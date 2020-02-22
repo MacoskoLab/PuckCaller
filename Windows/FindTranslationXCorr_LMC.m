@@ -19,12 +19,7 @@ for j=2:size(ImageIn,3)
     Cor=xcorr2(uint8(imBinMap),uint8(imBinChannel));
     [ssr,snd]=max(Cor(:));
     [y,x]=ind2sub(size(Cor),snd);
-    %[y,x]=ind2sub(size(Cor),find(Cor(:)==max(Cor(:))));
     offset=[-((b(4)-b(3)+1-x)),-(b(2)-b(1)+1-y)]
-%    figure(8)
-%    imshowpair(ImageIn(b(1):b(2),b(3):b(4),1)>300,ImageIn(b(1):b(2),b(3):b(4),j)>300)
-%    figure(9)
-%    imshowpair(ImageIn(b(1):b(2),b(3):b(4),1)>300,imtranslate(ImageIn(b(1):b(2),b(3):b(4),j)>300,offset))
     ImageOut(:,:,j)=uint16(imtranslate(ImageIn(:,:,j),offset));    
 end
 end

@@ -5,22 +5,14 @@
 %This function is for beads with 7 J bases in two groups.
 
 %%%%SETUP:
-%0) Make sure ImageJ is closed.
-
 %1) When you are done with the code, you should make the raw data folder in
 %Pucks and the InputFolder in find_roi online only via smart sync to save
 %hard drive space. You should also delete the pucktmp directory.
 
-%2) A number of paths are hardcoded in the code currently, e.g.
-%"C:\Users\sgr\Dropbox (MIT)\Project - SlideSeq\BeadSeq Code\find_roi\helpers\vlfeat-0.9.20\toolbox\"
-%in find_roi_stack_fun
-
-%3) Change ImageSize to reflect something slightly smaller than the size of
+%2) Change ImageSize to reflect something slightly smaller than the size of
 %the final stitched images.
 
-%4) If you have a digital gene expression matrix, you need to take the entire CSV and put it in the Illumina folder (C:\Users\sgr\Dropbox (MIT)\Project - SlideSeq\Pucks\Illumina\Puck_180106_3) and call it DGE.csv. I then copy out the top row with notepad++, delete the first entry (which is there as a placeholder for the row labels) and put it into a different file called IlluminaBarcodes.txt
-
-%5) Each ligation sequence and primer set will require a bunch of modifications
+%3) Each ligation sequence and primer set will require a bunch of modifications
 %to MapLocationsFun. To accommodate for this, I make a different version of MapLocationsFun for
 %each ligation sequence. You have to change which version is called below.
 
@@ -145,7 +137,7 @@ if isfield(params,'MissingBarcodeSequence')
     end
 end
 
-%addpath(ScriptFolder,[ScriptFolder,'\helpers']);
+addpath(ScriptFolder);
 
 % Create PuckNames from PuckName and PuckSToAnalyze
 % Note that the order in PuckNames should match the order in the .nd2 file.

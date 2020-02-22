@@ -45,7 +45,6 @@ axw = (1-sum(marg_w)-(Nw-1)*gap(2))/Nw;
 
 py = 1-marg_h(2)-axh; 
 
-% ha = zeros(Nh*Nw,1);
 ii = 0;
 for ih = 1:Nh
     px = marg_w(1);

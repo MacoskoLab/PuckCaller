@@ -2,37 +2,33 @@ function [Bead BeadImage]=BeadSeqFun6_FC(BaseName, suffix, OutputFolder,BeadZero
 %in addition to its outputs, the function will write images of the
 %basecalls and of the microscope images to the OutputFolder directory
 
-
-%clear all
-%close all
-
 %Currently, backgroundthreshold is determined *manually* from the images.
 %This should be the average intensity of the dark pixels *between beads*.
 %For the confocal 150 is usually good. Thanks, Marvin.
 
-    PixelThreshold=30; %changed to 200 from 150
-    index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="PixelCutoff"), varargin, 'UniformOutput', 1));
-    if ~isempty(index)
-        PixelThreshold=varargin{index+1};
-    end
-    DropBases=1;
-    index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="DropBases"), varargin, 'UniformOutput', 1));
-    if ~isempty(index)
-        DropBases=varargin{index+1};
-    end
+PixelThreshold=30; %changed to 200 from 150
+index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="PixelCutoff"), varargin, 'UniformOutput', 1));
+if ~isempty(index)
+	PixelThreshold=varargin{index+1};
+end
+DropBases=1;
+index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="DropBases"), varargin, 'UniformOutput', 1));
+if ~isempty(index)
+	DropBases=varargin{index+1};
+end
 
-    BeadSizeThreshold=30;
-    index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="BeadSizeThreshold"), varargin, 'UniformOutput', 1));
-    if ~isempty(index)
-        BeadSizeThreshold=varargin{index+1};
-    end
-    
-    PuckImageSubstraction='True';
-    index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="PuckImageSubstraction"), varargin, 'UniformOutput', 1));
-    if ~isempty(index)
-        PuckImageSubstraction=varargin{index+1};
-    end
-    
+BeadSizeThreshold=30;
+index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="BeadSizeThreshold"), varargin, 'UniformOutput', 1));
+if ~isempty(index)
+	BeadSizeThreshold=varargin{index+1};
+end
+
+PuckImageSubstraction='True';
+index = find(cellfun(@(x) (all(ischar(x)) || isstring(x))&&(string(x)=="PuckImageSubstraction"), varargin, 'UniformOutput', 1));
+if ~isempty(index)
+	PuckImageSubstraction=varargin{index+1};
+end
+
 starttime=tic();
 
 calibrate=1;
@@ -43,19 +39,8 @@ Cy3TxRMixing=0.5; %we subtract this factor *Cy3 Z score from TxR Z score. NOTE: 
 PreviousRoundMixing=0.4; %we subtract this factor *the previous round's Z scores from the current round's Z scores on Even ligations only
 loverride=0; %This is the maximum value of l to use when processing the barcodes. If loverride=0, we just use l.
 
-
 %At the moment we use all 20 ligations for the analysis, but this might not
 %be necessary.
-
-
-% l=0;
-% while true
-%     if exist([BaseName,pad(num2str(l+1),2,'left','0'),' channel ',int2str(1),suffix,' transform.tif'],'file')
-%         l=l+1;
-%     else
-%         break
-%     end
-% end
 
 [m,n]=size(BarcodeSequence);
 l=0;
@@ -83,12 +68,10 @@ ROI=[[1,info.Height];[1,info.Width]];
 ROIHeight=ROI(1,2)-ROI(1,1)+1;
 ROIWidth=ROI(2,2)-ROI(2,1)+1;
 
-%puckimagefull=zeros(info.Height,info.Width,numchannels);
 puckimage=zeros(ROIHeight,ROIWidth,numchannels);
 pixelvals=zeros(ROIHeight*ROIWidth,numchannels);
 puckzscores=zeros(ROIHeight,ROIWidth,numchannels);
 PreviousRoundZScores=zeros(ROIHeight,ROIWidth,numchannels);
-%maxpixelvals=zeros(ROIHeight*ROIWidth,l);
 CertaintyMap=zeros(ROIHeight,ROIWidth,l);
 MaxOfPuckImage=zeros(ROIHeight,ROIWidth,l);
 
@@ -101,8 +84,6 @@ end
 
 %% Loading in the data and calling the bases
 for m=1:NumLigations
-%    m
-
     if BarcodeSequence(m)==0
         if mod(m,2)==1
             PreviousRoundCalls=-1;
@@ -139,7 +120,6 @@ for m=1:NumLigations
     else
         SubtractLastRound=(max(puckimage,[],3)./sum(puckimage,3)<0.8); %We only subtract out the last round's Z scores if there are other Z scores that are reasonably large compared to the brightest
         for k=1:4 %this is ugly, but I couldn't work out a better way to do it
-                      
             mask = PreviousRoundCalls == k;
             if lower(char(PuckImageSubstraction))=="true"
                 puckimage(:,:,k)=puckimage(:,:,k)-mask.*PreviousRoundMixing.*(puckimage(:,:,k));
@@ -152,7 +132,6 @@ for m=1:NumLigations
     if EnforceBaseBalance && BarcodeSequence(m)~=0
         multiplier=[1 1 1 1];
         TestImage=puckimage((round(ROIHeight/2)-500):(round(ROIHeight/2)+500),(round(ROIWidth/2)-500):(round(ROIWidth/2)+500),:);
-        
         
         while true
             Counter=Counter+1;
@@ -180,8 +159,6 @@ for m=1:NumLigations
             puckimage(:,:,j)=multiplier(j)*puckimage(:,:,j);
         end
     end
-    
-
         
     [M,I]=max(puckimage,[],3); %I is the matrix of indices.
 
@@ -191,18 +168,11 @@ for m=1:NumLigations
     if mod(m,2)==1
         PreviousRoundCalls=Indices(:,:,m);
     end
-    
-%    if m==2 %to look at phasing, we want to see the correlation between the previous round's call and this round's call. So we 
-%        figure(8)
-%        heatmap(reshape(Indices(:,:,1:2),ROIHeight*ROIWidth,2))
-%    end
 
     %NOTE: This does not account for 1) knowledge of the previous base or
     %2) certainty, which can be incorporated based on the distance between
     %the two highest Z scores, or the Z score of the Z score, i.e. how much
     %higher the max Z score is than the other Z scores.
-    
-    
 end
 
 %% Show a plot of the pixel z scores for the pixel that is chosen in the previous section
@@ -218,14 +188,10 @@ if 0
     b(2).FaceColor='g';
     b(3).FaceColor='y';
     b(4).FaceColor='r';
-    
-    
 end
-
 
 %% Output images of the base calls:
 if 1
-%    OutputFolder='C:\Users\Sam\Dropbox (MIT)\Project - SlideSeq\BeadSeq Code\find_roi\InputFolder-Puck85-170818\Position A1 Base Calls - Params 7\';
     %NOTE: if you are in matlab and you try to write a binary image as a
     %tiff, imagej won't be able to open it for some weird reason.
     imwrite(256*uint16(Indices(:,:,1)==1),[OutputFolder,'Channel1Calls.tiff']);
@@ -253,58 +219,51 @@ if 1
         pause(2);
     end
     end
-
 end
-
 
 num_cycles = 20;
 num_channels = 4;
 
+figure('Position', [10 10 1000 500],'visible','off');
 
- %figure('Position', [10 10 2000 1000],'visible','off');
- figure('Position', [10 10 1000 500],'visible','off');
-
-   p = tight_subplot(4,num_cycles/2,[0.001 0.001],[0.00001 0.00001],[0.001 0.001]);
-   for jm = 1:num_cycles
-       
-       if BarcodeSequence(jm)==0
-           continue
-       end
-    
-       rgb_image = zeros(201,201,3);
-       rgb_image2 = zeros(201,201,3);
-       for channel=1:4
-           temp1 = double(imread([BaseName,pad(num2str(jm),2,'left','0'),' channel ',int2str(channel),suffix,' transform.tif'],'PixelRegion',{[2900 3100],[2900 3100]}));
-           temp1 = temp1./max(max(temp1));
-           temp2 = double(imread([OutputFolder,'Channel' num2str(channel) 'Calls.tiff'],jm,'PixelRegion',{[2900 3100],[2900 3100]}));
-           
-           
-           if channel == 1
-               rgb_image(:,:,1) = temp1 +rgb_image(:,:,1);
-               rgb_image2(:,:,1) = temp2 +rgb_image2(:,:,1);
-           elseif channel == 2
-               rgb_image(:,:,2) = temp1 +rgb_image(:,:,2);
-               rgb_image(:,:,3) = temp1 +rgb_image(:,:,3);
-               
-               rgb_image2(:,:,2) = temp2 +rgb_image2(:,:,2);
-               rgb_image2(:,:,3) = temp2 +rgb_image2(:,:,3);
-           elseif channel == 3
-               rgb_image(:,:,2) = temp1 +rgb_image(:,:,2);
-               rgb_image2(:,:,2) = temp2 +rgb_image2(:,:,2);
-           elseif channel == 4
-               rgb_image(:,:,3) = temp1 +rgb_image(:,:,3);
-               rgb_image2(:,:,3) = temp2 +rgb_image2(:,:,3);
-           end
-           
-           
-       end
-       rgb_image(:,:,1) = imadjust(rgb_image(:,:,1)./(max(max(rgb_image(:,:,1)))));
-       rgb_image(:,:,2) = imadjust(rgb_image(:,:,2)./(max(max(rgb_image(:,:,2)))));
-       rgb_image(:,:,3) = imadjust(rgb_image(:,:,3)./(max(max(rgb_image(:,:,3)))));
-       
-       axes(p(floor((jm-1)/10)*num_cycles/2+jm)); imshow(rgb_image,[]);
-       axes(p(floor((jm-1)/10)*num_cycles/2+jm + 10)); imshow(rgb_image2,[]);
+p = tight_subplot(4,num_cycles/2,[0.001 0.001],[0.00001 0.00001],[0.001 0.001]);
+for jm = 1:num_cycles
+   if BarcodeSequence(jm)==0
+	   continue
    end
+
+   rgb_image = zeros(201,201,3);
+   rgb_image2 = zeros(201,201,3);
+   for channel=1:4
+	   temp1 = double(imread([BaseName,pad(num2str(jm),2,'left','0'),' channel ',int2str(channel),suffix,' transform.tif'],'PixelRegion',{[2900 3100],[2900 3100]}));
+	   temp1 = temp1./max(max(temp1));
+	   temp2 = double(imread([OutputFolder,'Channel' num2str(channel) 'Calls.tiff'],jm,'PixelRegion',{[2900 3100],[2900 3100]}));
+	   
+	   if channel == 1
+		   rgb_image(:,:,1) = temp1 +rgb_image(:,:,1);
+		   rgb_image2(:,:,1) = temp2 +rgb_image2(:,:,1);
+	   elseif channel == 2
+		   rgb_image(:,:,2) = temp1 +rgb_image(:,:,2);
+		   rgb_image(:,:,3) = temp1 +rgb_image(:,:,3);
+		   
+		   rgb_image2(:,:,2) = temp2 +rgb_image2(:,:,2);
+		   rgb_image2(:,:,3) = temp2 +rgb_image2(:,:,3);
+	   elseif channel == 3
+		   rgb_image(:,:,2) = temp1 +rgb_image(:,:,2);
+		   rgb_image2(:,:,2) = temp2 +rgb_image2(:,:,2);
+	   elseif channel == 4
+		   rgb_image(:,:,3) = temp1 +rgb_image(:,:,3);
+		   rgb_image2(:,:,3) = temp2 +rgb_image2(:,:,3);
+	   end
+	   
+   end
+   rgb_image(:,:,1) = imadjust(rgb_image(:,:,1)./(max(max(rgb_image(:,:,1)))));
+   rgb_image(:,:,2) = imadjust(rgb_image(:,:,2)./(max(max(rgb_image(:,:,2)))));
+   rgb_image(:,:,3) = imadjust(rgb_image(:,:,3)./(max(max(rgb_image(:,:,3)))));
+   
+   axes(p(floor((jm-1)/10)*num_cycles/2+jm)); imshow(rgb_image,[]);
+   axes(p(floor((jm-1)/10)*num_cycles/2+jm + 10)); imshow(rgb_image2,[]);
+end
     saveas(gcf,[OutputFolder 'Basecalls.png'])
 %% Some analysis of the certainty:
 if 0
@@ -313,15 +272,12 @@ ReshapedCertaintyMap=reshape(CertaintyMap,ROIHeight*ROIWidth,l);
 scatter(ReshapedCertaintyMap(RandomIndices,1),ReshapedCertaintyMap(RandomIndices,3));
 end
 
-%scatter(maxpixelvals(RandomIndices,1),maxpixelvals(RandomIndices,3));
-
 if 1 %this is the part where we call barcodes. We need to tell it which ligations to use for barcode calling.
 
 %To identify bead locations, we have to convert Indices into integer barcodes.
 %We use base 6. I.e. the barcode '142342' gets converted to 2*6^0 + 4*6^1 +
 %3*6^2 + etc. Note that 0 indicates that no base was read.
 
-    
 %% Calling barcodes from the bases called above
 
 if DropBases
@@ -343,7 +299,6 @@ for dropbase=0:14
         end
     end
     PresentBarcodes=unique(FlattenedBarcodes);
-    %keyboard
 
     BarcodeOccCounts=histogram(FlattenedBarcodes,PresentBarcodes);
     manypixelbarcodeswithzeros=PresentBarcodes(BarcodeOccCounts.Values>BeadSizeThreshold);
@@ -378,7 +333,6 @@ for mm=1:l
         end
 end
 PresentBarcodes=unique(FlattenedBarcodes);
-%keyboard
 
 BarcodeOccCounts=histogram(FlattenedBarcodes,PresentBarcodes);
 manypixelbarcodeswithzeros=PresentBarcodes(BarcodeOccCounts.Values>BeadSizeThreshold);
@@ -389,8 +343,6 @@ axis([0,500,0,1])
 axis 'auto y'
 set(gca,'yscale','log')
 title('Pixels per Barcode')
-%export_fig([OutputFolder,'Report_BaseCalling_',PuckName,'.pdf'],'-append');    %export_fig([OutputFolder,'Report.pdf'],'-append');
-%print(figure(8),'-dpsc','-append',[OutputFolder,'Report_BaseCalling_',PuckName,'.ps']);
 print(figure(8),'-dpng',[OutputFolder,'Report_BaseCalling_',PuckName,'_8','.png']);
 
 %This is for the analysis of zeros:
@@ -420,9 +372,6 @@ b(3).FaceColor='g';
 b(4).FaceColor='y';
 b(5).FaceColor='r';
 title('For Barcodes with 7 nonzero entries, the base balance per ligation');
-%export_fig([OutputFolder,'Report_BaseCalling_',PuckName,'.pdf'],'-append');
-%export_fig([OutputFolder,'Report_BaseCalling.pdf'],'-append');
-%print(figure(77),'-dpsc','-append',[OutputFolder,'Report_BaseCalling_',PuckName,'.ps']);
 print(figure(77),'-dpng',[OutputFolder,'Report_BaseCalling_',PuckName,'_77','.png']);
 
 NumZerosPlot=zeros(1,l-NumSkippedBases+1);
@@ -432,15 +381,12 @@ end
     figure(76);
     bar(0:(l-NumSkippedBases),NumZerosPlot)
     title('Number of barcodes with a given number of 0s in them');
-    %export_fig([OutputFolder,'Report_BaseCalling_',PuckName,'.pdf'],'-append');    %export_fig([OutputFolder,'Report.pdf'],'-append');
-%print(figure(76),'-dpsc','-append',[OutputFolder,'Report_BaseCalling_',PuckName,'.ps']);
 print(figure(76),'-dpng',[OutputFolder,'Report_BaseCalling_',PuckName,'_76','.png']);
 
 %OLD CODE from the first analysis of Puck 8-5:
 %nonzerobarcodes=PresentBarcodes(cellfun(@numel,strfind(string(dec2base(PresentBarcodes,5,(l-NumSkippedBases))),'0'))<=BeadZeroThreshold);
 %beadhist=histogram(FlattenedBarcodes,nonzerobarcodes);% THIS DOESN'T WORK***
 %manypixelbarcodestmp=nonzerobarcodes(beadhist.Values>BeadSizeThreshold);
-
 
 %We make sure the length of manypixelbarcodes is divisible by NumPar to
 %facilitate parallelization
@@ -479,9 +425,6 @@ parfor parnum=1:NumPar
     LocalBeadLocations=zeros(2,nnz(manypixelbarcodes(:,parnum)));
     LocalBeadPix=cell(1,nnz(manypixelbarcodes(:,parnum)));
     for qq=1:nnz(manypixelbarcodesforpar(:,parnum))
-        %if qq/100==floor(qq/100)
-            %disp(['Worker ',num2str(parnum),' is on barcode ',num2str(qq)])
-        %end
         connected=bwconncomp(FlattenedBarcodes==LocalManyPixelBarcodes(qq));
         centroids=regionprops(connected,'Centroid');
     if max(cellfun(@numel,connected.PixelIdxList))>BeadSizeThreshold
@@ -533,7 +476,6 @@ for k=1:NumPar
     delete(BeadImageToDelete);
 end
 
-
 %% This is the non-parallel version
 if 0
 BeadImage=false(ROIHeight,ROIWidth);
@@ -559,19 +501,12 @@ for qq=1:length(manypixelbarcodes)
         end
     end
 end
-%for q=1:length(BeadBarcodes)
-%    if q/100==floor(q/100)
-%        q
-%    end
-%    BeadImage=BeadImage | (FlattenedBarcodes==BeadBarcodes(q)); %this is not exactly correct.
-%end
 end
 figure(78)
 imshow(BeadImage)
 
 save([OutputFolder,'AnalysisOutputs-selected'],'BeadImage','FlattenedBarcodes','Indices','Bead','BaseBalanceMatrix','NumZerosPlot','-v7.3')
 
-%export_fig([OutputFolder,'\Report.pdf'],'-append');
 fileid=fopen([OutputFolder,'Metrics.txt'],'w');
 fprintf(fileid,['The total runtime for basecalling was ',num2str(toc(starttime)/60),' minutes.\n',...
     'There are ',num2str(length(manypixelbarcodestmp)),' barcodes passing filter.\n',...
@@ -584,8 +519,4 @@ fprintf(fileid,['The total runtime for basecalling was ',num2str(toc(starttime)/
     'BeadZeroThreshold=',num2str(BeadZeroThreshold)...
     ]);
 fclose(fileid);
-
-
-
-
 end
