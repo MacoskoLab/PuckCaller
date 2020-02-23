@@ -28,15 +28,15 @@ For `Linux`:
 	mcc -m PuckCaller.m -a PuckCaller_script_folder -d PuckCaller_script_folder -o PuckCaller
 ```
 3) Modify PuckCaller_script_folder/run_PuckCaller.sh
-	Add: 
-	```
+Add: 
+```
 		reuse Java-1.8 (or another version)
 		manifest=$2
-	```
-	Modify:
-	```
+```
+Modify:
+```
 		eval "\"{$PuckCaller_script_folder}\"" ${manifest}
-	```
+```
 4) Prepare manifest file;
 5) Run PuckCaller:
 ```
