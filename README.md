@@ -28,14 +28,10 @@ For `Linux`:
 	mcc -m PuckCaller.m -a PuckCaller_script_folder -d PuckCaller_script_folder -o PuckCaller
 ```
 3) Modify PuckCaller_script_folder/run_PuckCaller.sh
-Add: 
 ```
-		reuse Java-1.8 (or another version)
-		manifest=$2
-```
-Modify:
-```
-		eval "\"{$PuckCaller_script_folder}\"" ${manifest}
+	reuse Java-1.8 (or another version)
+	manifest=$2
+	eval "\"{$PuckCaller_script_folder}\"" ${manifest}
 ```
 4) Prepare manifest file;
 5) Run PuckCaller:
@@ -46,5 +42,6 @@ Modify:
 Notice: matlab_path is like '/Linux/redhat_7_x86_64/pkgs/matlab_2019a'
 
 Notice: 
-1) Check `example.manifest.txt` for manifest file format.
-2) See `user_doc.txt` for detailed usage of PuckCaller. 
+1) Check `example.manifest.txt` for manifest file format;
+2) See example `run_PuckCaller.sh`;
+3) See `user_doc.txt` for detailed usage of PuckCaller.
