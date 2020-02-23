@@ -1,0 +1,105 @@
+
+********************************************************************************************
+**                                                                                        **
+**  PuckCaller                                                                            **
+**                                                                                        **
+**  Version:      1.0.0                                                                   **
+**  Release date: 02/20/2020                                                              **
+**  Contact:      puckcaller@gmail.com                                                    **
+**                                                                                        **
+********************************************************************************************
+
+
+Matlab package for image processing and base calling
+
+
+********************************************************************************************
+*********************************      Requirement      ************************************
+********************************************************************************************
+
+PuckCaller needs a public toolset bftools for image conversion. You could download bftools at:
+https://docs.openmicroscopy.org/bio-formats/5.7.1/users/comlinetools/index.html
+
+Unzip the package and put it under your directory.
+
+Java is required to run bftools.
+
+
+********************************************************************************************
+*********************************    Run PuckCaller     ************************************
+********************************************************************************************
+
+For Windows:
+1) Download PuckCaller Windows package;
+1) Prepare manifest file;
+2) Open Matlab;
+3) Set PuckCaller script folder as current folder;
+4) Open PuckCaller.m;
+5) Click "Run" or "Run Section".
+
+For Linux:
+1) Download PuckCaller Linux package;
+2) Compile matlab code (command might be different on your system):
+	use .matlab-2019a
+	mcc -m PuckCaller.m -a PuckCaller_script_folder -d PuckCaller_script_folder -o PuckCaller
+3) Modify PuckCaller_script_folder/run_PuckCaller.sh
+	Add: 
+		reuse Java-1.8 (or another version)
+		manifest=$2
+	Modify:
+		eval "\"{$PuckCaller_script_folder}\"" ${manifest}
+4) Prepare manifest file;
+5) Run PuckCaller:
+	qsub -o logfile -l h_vmem=30g -l h_rt=10:0:0 -j y PuckCaller_script_folder/run_PuckCaller.sh matlab_path manifest_file
+
+Notice: matlab_path is like /***/Linux/redhat_7_x86_64/pkgs/matlab_2019a
+
+
+********************************************************************************************
+**************************************    Manifest    **************************************
+********************************************************************************************
+
+ScriptFolder				Specify the PuckCaller script directory. Add "\" or "/" at the end
+
+BftoolsFolder				Specify the bftools directory. Add "\" or "/" at the end
+
+Nd2Folder					Specify the nd2 image directory. Add "\" or "/" at the end
+
+FolderWithProcessedTiffs	Specify the directory where the intermediate images will be saved. Add "\" or "/" at the end
+
+OutputFolderRoot			Specify the directory where the output files will be saved. Add "\" or "/" at the end
+
+IndexFiles					Specify the comma-separated nd2 file names. 
+
+PuckName					Specify the puck name
+
+PucksToAnalyze				Specify the puck id(s) to analyze. It could be a single number like 1, or comma-separated multiple numbers like 1,3,4,9
+
+LigationToIndexFileMapping	Specify ligation to nd2 file mapping. For example 1,1,1,1,0,1,0,3,0,2,4,4,4,4,0,5,0,3,0,3. 1 represents the first nd2 file. 
+
+TnumMapping					Specify ligation order for each nd2 file. For example 1,2,3,4,0,5,0,1,0,1,1,2,3,4,0,1,0,3,0,2. 
+
+MissingBarcodeSequence		Specify the missing barcode sequence
+
+PuckImageSubstraction		Specify if do image substraction. Default value is True
+
+Monobase					Specify if it is monobase. 1 represents monobase and 0 represents dibase. Default value is 0
+
+DeleteIntermediateFiles		Specify if delete intermediate files. Default value is False
+
+
+********************************************************************************************
+***************************************    Output    ***************************************
+********************************************************************************************
+
+OutputFolderRoot/AnalysisOutputs-selected.mat
+-contains bead image, flattened barcodes, indices, bead, and base balance matrix.
+
+OutputFolderRoot/BeadBarcodes.txt
+-contains a list of bead barcodes
+
+OutputFolderRoot/BeadLocations.txt
+-contains x/y coordinates related to the list of bead barcodes
+-first line is x coordinate
+-second line is y coordinate
+
