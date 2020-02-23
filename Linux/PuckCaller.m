@@ -1,3 +1,4 @@
+function PuckCaller(manifest)
 %%%%This pipeline function assumes that we are using the large image
 %%%%feature and the XY feature in Nikon images, and that files ending in
 %%%%xy1 are for puck 1. We do not do stitching.
@@ -5,29 +6,17 @@
 %This function is for beads with 7 J bases in two groups.
 
 %%%%SETUP:
-%0) Make sure ImageJ is closed.
-
 %1) When you are done with the code, you should make the raw data folder in
 %Pucks and the InputFolder in find_roi online only via smart sync to save
 %hard drive space. You should also delete the pucktmp directory.
 
-%2) A number of paths are hardcoded in the code currently, e.g.
-%"C:\Users\sgr\Dropbox (MIT)\Project - SlideSeq\BeadSeq Code\find_roi\helpers\vlfeat-0.9.20\toolbox\"
-%in find_roi_stack_fun
-
-%3) Change ImageSize to reflect something slightly smaller than the size of
+%2) Change ImageSize to reflect something slightly smaller than the size of
 %the final stitched images.
 
-%4) If you have a digital gene expression matrix, you need to take the entire CSV and put it in the Illumina folder (C:\Users\sgr\Dropbox (MIT)\Project - SlideSeq\Pucks\Illumina\Puck_180106_3) and call it DGE.csv. I then copy out the top row with notepad++, delete the first entry (which is there as a placeholder for the row labels) and put it into a different file called IlluminaBarcodes.txt
-
-%5) Each ligation sequence and primer set will require a bunch of modifications
+%3) Each ligation sequence and primer set will require a bunch of modifications
 %to MapLocationsFun. To accommodate for this, I make a different version of MapLocationsFun for
 %each ligation sequence. You have to change which version is called below.
 
-
-%% Initialize
-clear all
-close all
 
 %We assume that the nd2s have been exported to tiffs in the format:
 %DescriptiveNametLYX, where DescriptiveName refers to one run of the microscope,  Y is a letter and X is a number, and L is the
@@ -67,9 +56,6 @@ WhichLigationsAreMissing=[1,2,3,4,5,6,7,8,9,10,11,12,13,14];
 
 
 %% Load parameters from manifest file
-[file,path] = uigetfile('*.txt', 'Select manifest file');
-manifest = [path,file];
-
 % Check if manifest file exists
 if ~exist(manifest,'file')
     error('Manifest file not found');
@@ -145,8 +131,6 @@ if isfield(params,'MissingBarcodeSequence')
     end
 end
 
-%addpath(ScriptFolder,[ScriptFolder,'\helpers']);
-
 % Create PuckNames from PuckName and PuckSToAnalyze
 % Note that the order in PuckNames should match the order in the .nd2 file.
 [m,n]=size(PucksToAnalyze);
@@ -159,13 +143,13 @@ end
 %% Create folders
 OutputFolders={};
 for puck=1:length(PuckNames)
-    ProcessedImageFolders{puck}=[FolderWithProcessedTiffs,PuckNames{puck},'\'];
+    ProcessedImageFolders{puck}=[FolderWithProcessedTiffs,PuckNames{puck},'/'];
     mkdir([FolderWithProcessedTiffs,PuckNames{puck}]);
-    OutputFolders{puck}=[OutputFolderRoot,PuckNames{puck},'\'];
+    OutputFolders{puck}=[OutputFolderRoot,PuckNames{puck},'/'];
     mkdir(OutputFolders{puck});
     
     % Copy manifest file to output folder
-    copyfile(manifest,[OutputFolders{puck},'\']);
+    copyfile(manifest,[OutputFolders{puck},'/']);
 end
 
 
@@ -185,12 +169,12 @@ for pucknum=1:length(PuckNames)
         end
         
         % Run showinf to check if puck and tnum are valid
-        r = randi([10000000 99999999],1);
+		r = randi([10000000 99999999],1);
         outputfilename=[ProcessedImageFolders{pucknum},'showinf_',num2str(r),'.txt'];
-        commandfile=fopen('C:\showinfCommand.cmd','w');
-        fwrite(commandfile,strcat(BftoolsFolder,'showinf',32,'"',filename,'"',32,'>',32,outputfilename));
-        fclose(commandfile);
-        !C:/showinfCommand
+		command = strcat(BftoolsFolder,'showinf',32,'"',filename,'"',32,'>',32,outputfilename);
+		display(command);
+		system(command);
+        
         text = fileread(outputfilename);
         text = regexp(text, '\n', 'split');
         IdxSeriesCount = find(contains(text,'Series count ='));
@@ -215,10 +199,9 @@ for pucknum=1:length(PuckNames)
         
         % Convert .nd2 to .tiff
         outputfilename=[ProcessedImageFolders{pucknum},PuckNames{pucknum},'_Ligation_',pad(num2str(ligation),2,'left','0'),'_Stitched.tif'];
-        commandfile=fopen('C:\bfconvertCommand.cmd','w');
-        fwrite(commandfile,strcat(BftoolsFolder,'bfconvert -tilex 512 -tiley 512 -series',32,num2str(puck-1),' -timepoint',32,num2str(tnum-1),' "',replace(filename,'\','\\'),'" "',replace(outputfilename,'\','\\'),'"'));
-        fclose(commandfile);
-        !C:/bfconvertCommand
+		command = strcat(BftoolsFolder,'bfconvert -tilex 512 -tiley 512 -series',32,num2str(puck-1),' -timepoint',32,num2str(tnum-1),' "',filename,'" "',outputfilename,'"');
+		display(command);
+		system(command);
     end
 end
 
