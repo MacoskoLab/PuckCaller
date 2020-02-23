@@ -17,8 +17,8 @@ For `Windows`:
 1) Prepare manifest file;
 2) Open Matlab;
 3) Set PuckCaller script folder as current folder;
-4) Open PuckCaller.m;
-5) Click "Run" or "Run Section".
+4) Open `PuckCaller.m`;
+5) Click "`Run`" or "`Run Section`".
 
 For `Linux`:
 1) Download PuckCaller Linux package;
@@ -39,9 +39,8 @@ For `Linux`:
 	qsub -o logfile -l h_vmem=30g -l h_rt=10:0:0 -j y PuckCaller_script_folder/run_PuckCaller.sh matlab_path manifest_file
 ```
 
-Notice: matlab_path is like '/Linux/redhat_7_x86_64/pkgs/matlab_2019a'
-
 Notice: 
-1) Check `example.manifest.txt` for manifest file format;
-2) See example `run_PuckCaller.sh`;
-3) See `user_doc.txt` for detailed usage of PuckCaller.
+1) matlab_path is like `/Linux/redhat_7_x86_64/pkgs/matlab_2019a`;
+2) Check `example.manifest.txt` for manifest file format;
+3) See example `run_PuckCaller.sh`;
+4) See `user_doc.txt` for detailed usage of PuckCaller.
