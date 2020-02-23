@@ -302,8 +302,9 @@ for dropbase=0:14
 
     BarcodeOccCounts=histogram(FlattenedBarcodes,PresentBarcodes);
     manypixelbarcodeswithzeros=PresentBarcodes(BarcodeOccCounts.Values>BeadSizeThreshold);
-    manypixelbarcodestmp=manypixelbarcodeswithzeros(cellfun(@numel,strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0'))<=BeadZeroThreshold);
-    disp(['There are ',num2str(length(manypixelbarcodestmp)),' barcodes passing filter without base',num2str(dropbase),'.'])
+    manypixelbarcodestmp=manypixelbarcodeswithzeros(cellfun(@numel,{strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0')})<=BeadZeroThreshold);
+    %Input #2 expected to be a cell array, was double instead.
+	disp(['There are ',num2str(length(manypixelbarcodestmp)),' barcodes passing filter without base',num2str(dropbase),'.'])
     if length(manypixelbarcodestmp)>maxbarcodes
         if dropbase==0
             maxbarcodes=length(manypixelbarcodestmp)+15000; %We prefer to keep all the ligations
@@ -346,7 +347,7 @@ title('Pixels per Barcode')
 print(figure(8),'-dpng',[OutputFolder,'Report_BaseCalling_',PuckName,'_8','.png']);
 
 %This is for the analysis of zeros:
-BaseBalanceBarcodes=manypixelbarcodeswithzeros(cellfun(@numel,strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0'))<=7);
+BaseBalanceBarcodes=manypixelbarcodeswithzeros(cellfun(@numel,{strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0')})<=7);
 %The base 5 representations of the basecalls are:
 BaseBalanceBase5Barcodes=cellfun(@(x) reverse(string(x)),{dec2base(BaseBalanceBarcodes,5,(l-NumSkippedBases))},'UniformOutput',false);
 BaseBalanceBase5Barcodes=BaseBalanceBase5Barcodes{1};
@@ -364,6 +365,8 @@ BaseBalanceMatrix(2,:)=sum(char(BaseBalanceBase5Barcodes)==testcmp1,1);
 BaseBalanceMatrix(3,:)=sum(char(BaseBalanceBase5Barcodes)==testcmp2,1);
 BaseBalanceMatrix(4,:)=sum(char(BaseBalanceBase5Barcodes)==testcmp3,1);
 BaseBalanceMatrix(5,:)=sum(char(BaseBalanceBase5Barcodes)==testcmp4,1);
+
+%{
 figure(77)
 b=bar(BaseBalanceMatrix');
 b(1).FaceColor='k';
@@ -373,24 +376,20 @@ b(4).FaceColor='y';
 b(5).FaceColor='r';
 title('For Barcodes with 7 nonzero entries, the base balance per ligation');
 print(figure(77),'-dpng',[OutputFolder,'Report_BaseCalling_',PuckName,'_77','.png']);
+%}
 
 NumZerosPlot=zeros(1,l-NumSkippedBases+1);
 for kl=1:(l-NumSkippedBases+1)
-    NumZerosPlot(kl)=size(manypixelbarcodeswithzeros(cellfun(@numel,strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0'))==kl-1),1);
+    NumZerosPlot(kl)=size(manypixelbarcodeswithzeros(cellfun(@numel,{strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0')})==kl-1),1);
 end
     figure(76);
     bar(0:(l-NumSkippedBases),NumZerosPlot)
     title('Number of barcodes with a given number of 0s in them');
 print(figure(76),'-dpng',[OutputFolder,'Report_BaseCalling_',PuckName,'_76','.png']);
 
-%OLD CODE from the first analysis of Puck 8-5:
-%nonzerobarcodes=PresentBarcodes(cellfun(@numel,strfind(string(dec2base(PresentBarcodes,5,(l-NumSkippedBases))),'0'))<=BeadZeroThreshold);
-%beadhist=histogram(FlattenedBarcodes,nonzerobarcodes);% THIS DOESN'T WORK***
-%manypixelbarcodestmp=nonzerobarcodes(beadhist.Values>BeadSizeThreshold);
-
 %We make sure the length of manypixelbarcodes is divisible by NumPar to
 %facilitate parallelization
-manypixelbarcodestmp=manypixelbarcodeswithzeros(cellfun(@numel,strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0'))<=BeadZeroThreshold);
+manypixelbarcodestmp=manypixelbarcodeswithzeros(cellfun(@numel,{strfind(string(dec2base(manypixelbarcodeswithzeros,5,(l-NumSkippedBases))),'0')})<=BeadZeroThreshold);
 manypixelbarcodes=zeros(1,ceil(length(manypixelbarcodestmp)/NumPar)*NumPar);
 manypixelbarcodes(1:length(manypixelbarcodestmp))=manypixelbarcodestmp; %We have to be careful here to get the indexing right.
 %This is almost working but manypixelbarcodes still contains an element
@@ -410,14 +409,15 @@ disp(['There are ',num2str(length(manypixelbarcodestmp)),' barcodes passing filt
 BeadImage=false(ROIHeight,ROIWidth);
 totalbarcodes=0;
 delete(gcp('nocreate'));
-pool=parpool(NumPar);
+%pool=parpool(NumPar);
 
 manypixelbarcodesforpar=reshape(manypixelbarcodes,ceil(length(manypixelbarcodes)/NumPar),NumPar);
 BeadBarcodeCell={};
 BeadLocationCell={};
 BeadPixCell={};
 
-parfor parnum=1:NumPar
+%parfor parnum=1:NumPar
+for parnum=1:NumPar
     pp=0;
     LocalManyPixelBarcodes=manypixelbarcodesforpar(:,parnum);
     LocalBeadImage=false(ROIHeight,ROIWidth);
@@ -453,7 +453,7 @@ BeadBarcodes=zeros(1,BeadBarcodeLength);
 BeadLocations=zeros(2,BeadBarcodeLength);
 BeadPixCelljoined=cell(1,BeadBarcodeLength);
 
-delete(pool);
+%delete(pool);
 
 BeadBarcodeIndex=1;
 for k=1:NumPar
