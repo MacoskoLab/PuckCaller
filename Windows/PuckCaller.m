@@ -232,10 +232,14 @@ for puck=1:length(PuckNames)
     suffix='_Stitched';
     disp(['Beginning basecalling for puck number ',num2str(puck)])
 	[Bead BeadImage]=BeadSeqFun6_FC(BaseName,suffix,OutputFolders{puck},BeadZeroThreshold,BarcodeSequence,NumPar,NumLigations,PuckNames{puck},EnforceBaseBalance,BaseBalanceTolerance,'PixelCutoff',PixelCutoffBasecalling,'DropBases',DropBases,'BeadSizeThreshold',BeadSizeCutoff,'PuckImageSubstraction',PuckImageSubstraction);
-    
-    [UniqueBeadBarcodes,BBFirstRef,BBOccCounts]=unique([Bead.Barcodes]);
-    UniqueBeadLocations={Bead(BBFirstRef).Locations};
-    BaseBalanceBarcodes=[UniqueBeadBarcodes];
+	
+	BeadBarcodes = [Bead.Barcodes];
+    BeadLocations = {Bead.Locations};
+    [UniqueBeadBarcodes,BBFirstRef,BBOccCounts]=unique(BeadBarcodes, 'stable');
+    [~, b] = ismember(BeadBarcodes, BeadBarcodes(BBFirstRef(accumarray(BBOccCounts,1)>1)));
+    UniqueBeadBarcodes2 = BeadBarcodes(b<1);
+    UniqueBeadLocations = BeadLocations(b<1);
+    BaseBalanceBarcodes=[UniqueBeadBarcodes2];
     BaseBalanceBase5Barcodes=cellfun(@(x) reverse(string(x)),{dec2base(BaseBalanceBarcodes,5,NumBases)},'UniformOutput',false);
     BaseBalanceBase5Barcodes=BaseBalanceBase5Barcodes{1};
     UniqueBeadBarcodesForExport=char(replace(BaseBalanceBase5Barcodes,{'0','1','2','3','4'},{'N','T','G','C','A'}));
